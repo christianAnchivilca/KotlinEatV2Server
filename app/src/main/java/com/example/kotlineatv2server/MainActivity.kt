@@ -62,7 +62,6 @@ class MainActivity : AppCompatActivity() {
 
             //onAuthStateChanged ->La manera recomendada de obtener el usuario actual es establecer un observador en el objeto Auth
             override fun onAuthStateChanged(firebaseAuth: FirebaseAuth) {
-
                 /*
                 * También puedes usar la propiedad currentUser para obtener el usuario que accedió.
                 * Si no accedió ningún usuario, el valor de currentUser es null:*/
