@@ -5,6 +5,7 @@ import android.content.res.Resources
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -19,12 +20,14 @@ import kotlin.collections.HashMap
 
 
 abstract class MySwipeHelper(
-    context: Context?,
-    private val recyclerView:RecyclerView,
+    context: Context,
+    var recyclerView:RecyclerView,
     internal var buttonWidth:Int):ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT){
 
 
     abstract fun instantiateMyButton(viewHolder:RecyclerView.ViewHolder,buffer: MutableList<MyButton>)
+
+
     private var buttonList : MutableList<MyButton> ?=null
     private lateinit var gestureDetector:GestureDetector
     private var swipePosition = -1
@@ -36,20 +39,22 @@ abstract class MySwipeHelper(
     private val gestureListener = object:GestureDetector.SimpleOnGestureListener(){
         override fun onSingleTapUp(e: MotionEvent?): Boolean {
             for (button in buttonList!!)
-                if (button.onClick(e!!.x,e!!.y))
+                if (button.onClick(e!!.x,e.y))
                     break
             return true
         }
     }
 
-    private val onTouchListener = View.OnTouchListener{ view, motionEvent ->
+    private val onTouchListener = View.OnTouchListener{ _, motionEvent ->
 
         if (swipePosition < 0) return@OnTouchListener false
+
 
         val point = Point(motionEvent.rawX.toInt(),motionEvent.rawY.toInt())
 
         val swipeViewHolder = recyclerView.findViewHolderForAdapterPosition(swipePosition)
         val swipedItem = swipeViewHolder!!.itemView
+
         val rect = Rect()
         swipedItem.getGlobalVisibleRect(rect)
 
@@ -93,7 +98,7 @@ abstract class MySwipeHelper(
     private fun recoverSwipedItem(){
         while (!removerQueue.isEmpty())
         {
-            val pos = removerQueue.poll()!!
+            val pos = removerQueue.poll()!!.toInt()
             if (pos > -1)
                 recyclerView.adapter!!.notifyItemChanged(pos)
         }
@@ -118,7 +123,8 @@ abstract class MySwipeHelper(
                          private val textSize:Int,
                          private val imageResId:Int,
                          private val color:Int,
-                         private val listener:IMyButtonCallback){
+                         private val listener:IMyButtonCallback)
+    {
 
         private var pos:Int=0
         private var clickRegion:RectF?=null
@@ -171,9 +177,14 @@ abstract class MySwipeHelper(
         }
     }
 
+
+
+
+
+
     private fun drawableToBitmap(d:Drawable?):Bitmap{
-        if (d!! is BitmapDrawable)
-            return d!!.toBitmap()
+        if (d is BitmapDrawable)
+            return d.toBitmap()
         val bitmap = Bitmap.createBitmap(d!!.intrinsicWidth,d.intrinsicHeight,Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         d.setBounds(0,0, canvas.width,canvas.height)
@@ -249,8 +260,8 @@ abstract class MySwipeHelper(
                 }
                 else
                     buffer = buttonBuffer[pos]!!
-                translationX = dX*buffer.size.toFloat()*buttonWidth.toFloat()/itemView.width
-                drawButton(c,itemView,buffer,pos,translationX)
+                    translationX = dX*buffer.size.toFloat()*buttonWidth.toFloat()/itemView.width
+                    drawButton(c,itemView,buffer,pos,translationX)
 
             }
 

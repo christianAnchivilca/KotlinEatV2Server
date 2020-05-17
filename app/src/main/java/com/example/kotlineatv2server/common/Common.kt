@@ -1,9 +1,11 @@
 package com.example.kotlineatv2server.common
 
 import com.example.kotlineatv2server.model.CategoryModel
+import com.example.kotlineatv2server.model.FoodModel
 import com.example.kotlineatv2server.model.ServerUserModel
 
 object Common {
+    var foodModelSelected: FoodModel?=null
     var category_selected: CategoryModel?=null
     const val SERVER_REF = "Server"
     var currentServerUser:ServerUserModel?=null

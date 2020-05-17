@@ -27,11 +27,13 @@ import com.example.kotlineatv2server.adapter.MyCategoriesAdapter
 import com.example.kotlineatv2server.callback.IMyButtonCallback
 import com.example.kotlineatv2server.common.Common
 import com.example.kotlineatv2server.common.MySwipeHelper
+import com.example.kotlineatv2server.eventbus.ToasEvent
 import com.example.kotlineatv2server.model.CategoryModel
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import dmax.dialog.SpotsDialog
+import org.greenrobot.eventbus.EventBus
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -99,9 +101,9 @@ class CategoryFragment : Fragment() {
         recycler_category!!.layoutManager = layoutManager
         recycler_category!!.addItemDecoration(DividerItemDecoration(context,layoutManager.orientation))
 
-        val swipe = object:MySwipeHelper(context,recycler_category!!,200)
+        val swipe = @SuppressLint("UseRequireInsteadOfGet")
+        object:MySwipeHelper(context!!,recycler_category!!,200)
         {
-
             override fun instantiateMyButton(
                 viewHolder: RecyclerView.ViewHolder,
                 buffer: MutableList<MyButton>
@@ -116,12 +118,8 @@ class CategoryFragment : Fragment() {
                             Common.category_selected = categoryModels[pos]
                             showUpdateDialog()
                         }
-
                     }))
-
             }
-
-
         }
 
     }
@@ -149,6 +147,7 @@ class CategoryFragment : Fragment() {
             val updateData = HashMap<String,Any>()
             updateData["name"]=edt_category_name.text.toString()
             if (imageUri != null){
+
                 dialog.setMessage("Actualizando..")
                 dialog.show()
                 val imageName = UUID.randomUUID().toString()
@@ -192,10 +191,8 @@ class CategoryFragment : Fragment() {
             .addOnFailureListener{e->Toast.makeText(context,""+e.message,Toast.LENGTH_SHORT).show()}
             .addOnCompleteListener{task->
                 categoryViewModel!!.loadCategory()
-                Toast.makeText(context,"Actulizado con exito",Toast.LENGTH_SHORT).show()
+                EventBus.getDefault().postSticky(ToasEvent(true,false))
                 imageUri = null
-
-
             }
 
     }

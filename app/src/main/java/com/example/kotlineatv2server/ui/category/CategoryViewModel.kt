@@ -46,6 +46,7 @@ class CategoryViewModel : ViewModel(), ICategoryCallabackListener {
         return messageError
     }
 
+    //OBTENEMOS LA DATA DESDE FIREBASE DATABASE
     fun loadCategory(){
         val tempList = ArrayList<CategoryModel>()
         val categoryRef = FirebaseDatabase.getInstance().getReference(Common.CATEGORY_REFERENCE)
