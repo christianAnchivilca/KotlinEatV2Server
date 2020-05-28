@@ -2,13 +2,13 @@ package com.example.kotlineatv2server.ui.foodlist
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
 import android.widget.*
@@ -62,6 +62,70 @@ class FoodListFragment : Fragment() {
 
 
     @SuppressLint("UseRequireInsteadOfGet")
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.food_list_menu,menu)
+
+
+        //create search view
+        val menuItem = menu.findItem(R.id.action_search)
+        val searchManager = activity!!.getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val searchView = menuItem.actionView as androidx.appcompat.widget.SearchView
+
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(activity!!.componentName!!))
+        searchView.setOnQueryTextListener(object:androidx.appcompat.widget.SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(search: String?): Boolean {
+                startSearchFood(search)
+               return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+
+            }
+
+        })
+        //clear txt when click clear button
+        val closeButton = searchView.findViewById<View>(R.id.search_close_btn) as ImageView
+        closeButton.setOnClickListener{
+            val ed = searchView.findViewById<View>(R.id.search_src_text) as EditText
+            //clear text
+            ed.setText("")
+            //clear query
+            searchView.setQuery("",false)
+            //collapse action view
+            searchView.onActionViewCollapsed()
+            //collapse the search widget
+            menuItem.collapseActionView()
+            //restore result to original
+            foodListViewModel.getMutableFoodModelListData().value = Common.category_selected!!.foods
+
+        }
+
+
+    }
+
+    private fun startSearchFood(search: String?) {
+        val resultFood: MutableList<FoodModel> = ArrayList()
+        for (i in Common.category_selected!!.foods!!.indices){
+
+            val foodModel = Common.category_selected!!.foods!![i]
+
+            if (foodModel.name!!.toLowerCase().contains(search!!.toLowerCase())){
+                //aquí guardaremos el índice del elemento de resultado de búsqueda
+                foodModel.positionList = i
+                resultFood.add(foodModel)
+            }
+        }
+
+        //update search result
+        foodListViewModel!!.getMutableFoodModelListData().value = resultFood
+
+    }
+
+
+
+
+    @SuppressLint("UseRequireInsteadOfGet", "FragmentLiveDataObserve")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -86,6 +150,8 @@ class FoodListFragment : Fragment() {
 
 
     private fun initView(root: View?) {
+
+        setHasOptionsMenu(true)
 
         dialog = SpotsDialog.Builder().setContext(context).setCancelable(false).build()
 
@@ -125,7 +191,9 @@ class FoodListFragment : Fragment() {
         val rdb_edit_size = itemview.findViewById<View>(R.id.rdb_editar_size) as RadioButton
         val rdb_edit_addon = itemview.findViewById<View>(R.id.rdb_editar_addon) as RadioButton
 
-        builder.setNegativeButton("CANCELAR"){dialogInterface,_->dialogInterface.dismiss()}
+        builder.setNegativeButton("CANCELAR"){dialogInterface,_->dialogInterface.dismiss()
+            foodListViewModel.getMutableFoodModelListData().value = Common.category_selected!!.foods
+        }
 
 
         builder.setPositiveButton("ACEPTAR"){dialogInterface,_->
@@ -133,19 +201,48 @@ class FoodListFragment : Fragment() {
 
 
              if (rdb_editar.isChecked){
-                 showDialogEditar(pos)
+                 val foodModel = adapter!!.getItemAtPosition(pos)
+                 if (foodModel.positionList == -1)
+                     showDialogEditar(pos,foodModel)
+                 else
+                     showDialogEditar(foodModel.positionList,foodModel)
+
              }else if(rdb_eliminar.isChecked){
-                 Common.category_selected!!.foods!!.removeAt(pos)
+                 val foodModel = adapter!!.getItemAtPosition(pos)
+                 if (foodModel.positionList == -1)
+                     Common.category_selected!!.foods!!.removeAt(pos)
+                 else
+                     Common.category_selected!!.foods!!.removeAt(foodModel.positionList)
                  updateFood(Common.category_selected!!.foods,true)
+
              }else if(rdb_edit_size.isChecked){
-                 Common.foodModelSelected = foodModels!![pos]
+
+                 val foodModel = adapter!!.getItemAtPosition(pos)
+                 if (foodModel.positionList == -1)
+                     Common.foodModelSelected = foodModels!![pos]
+                 else
+                     Common.foodModelSelected = foodModel
                  startActivity(Intent(context!!,SizeAddonEditActivity::class.java))
-                 EventBus.getDefault().postSticky(AddonSizeEditEvent(false,pos))
+                 if (foodModel.positionList == -1)
+                     EventBus.getDefault().postSticky(AddonSizeEditEvent(false,pos))
+                 else
+                     EventBus.getDefault().postSticky(AddonSizeEditEvent(false,foodModel.positionList))
+
 
              }else if(rdb_edit_addon.isChecked){
-                 Common.foodModelSelected = foodModels!![pos]
+
+                 val foodModel = adapter!!.getItemAtPosition(pos)
+                 if (foodModel.positionList == -1)
+                     Common.foodModelSelected = foodModels!![pos]
+                 else
+                     Common.foodModelSelected = foodModel
                  startActivity(Intent(context!!,SizeAddonEditActivity::class.java))
-                 EventBus.getDefault().postSticky(AddonSizeEditEvent(true,pos))
+                 if (foodModel.positionList == -1)
+                     EventBus.getDefault().postSticky(AddonSizeEditEvent(true,pos))
+                 else
+                     EventBus.getDefault().postSticky(AddonSizeEditEvent(true,foodModel.positionList))
+
+
 
              }else{
                  Toast.makeText(context,"Seleccione una opcion",Toast.LENGTH_SHORT).show()
@@ -162,7 +259,7 @@ class FoodListFragment : Fragment() {
 
 
     @SuppressLint("UseRequireInsteadOfGet")
-    private fun showDialogEditar(pos:Int) {
+    private fun showDialogEditar(pos:Int,foodModel:FoodModel) {
 
         val builder = AlertDialog.Builder(context!!)
         builder.setTitle("Editar")
@@ -173,10 +270,10 @@ class FoodListFragment : Fragment() {
         val edt_food_desciption = itemView.findViewById<View>(R.id.edt_food_desciption) as EditText
         img_food = itemView.findViewById<View>(R.id.img_food) as ImageView
 
-        edt_food_name.setText(Common.foodModelSelected!!.name)
-        edt_food_price.setText(Common.foodModelSelected!!.price.toString())
-        edt_food_desciption.setText(Common.foodModelSelected!!.description)
-        Glide.with(context!!).load(Common.foodModelSelected!!.image).into(img_food)
+        edt_food_name.setText(foodModel.name)
+        edt_food_price.setText(foodModel.price.toString())
+        edt_food_desciption.setText(foodModel.description)
+        Glide.with(context!!).load(foodModel.image).into(img_food)
         img_food.setOnClickListener{
             val intent = Intent()
             intent.type = "image/*"
@@ -191,7 +288,7 @@ class FoodListFragment : Fragment() {
             dialogInterface.dismiss()
         }
         builder.setPositiveButton("ACEPTAR"){dialogInterface,_->
-           val foodUpdate = Common.category_selected!!.foods!![pos]
+           val foodUpdate = foodModel
             foodUpdate.name = edt_food_name.text.toString()
             foodUpdate.price = edt_food_price.text.toString().toLong()
             foodUpdate.description = edt_food_desciption.text.toString()

@@ -49,6 +49,10 @@ class MyFoodListAdapter(var context: Context,var foodList:List<FoodModel>):
 
     }
 
+    fun getItemAtPosition(pos: Int): FoodModel {
+        return foodList.get(pos)
+
+    }
 
 
     inner class MyViewHolder(itemView:View):RecyclerView.ViewHolder(itemView),View.OnClickListener{
