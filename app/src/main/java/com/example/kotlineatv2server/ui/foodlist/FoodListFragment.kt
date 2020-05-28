@@ -22,11 +22,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.kotlineatv2server.R
+import com.example.kotlineatv2server.SizeAddonEditActivity
 import com.example.kotlineatv2server.adapter.MyFoodListAdapter
 import com.example.kotlineatv2server.callback.IMyButtonCallback
 import com.example.kotlineatv2server.common.Common
 import com.example.kotlineatv2server.common.MySwipeHelper
 import com.example.kotlineatv2server.common.SwipeToDeleteCallback
+import com.example.kotlineatv2server.eventbus.AddonSizeEditEvent
 import com.example.kotlineatv2server.eventbus.ChangeMenuClick
 import com.example.kotlineatv2server.eventbus.ToasEvent
 import com.example.kotlineatv2server.model.CategoryModel
@@ -120,7 +122,11 @@ class FoodListFragment : Fragment() {
         val itemview = LayoutInflater.from(context).inflate(R.layout.layout_dialog_question,null)
         val rdb_editar = itemview.findViewById<View>(R.id.rdb_editar_food)as RadioButton
         val rdb_eliminar = itemview.findViewById<View>(R.id.rdb_eliminar_food)as RadioButton
+        val rdb_edit_size = itemview.findViewById<View>(R.id.rdb_editar_size) as RadioButton
+
         builder.setNegativeButton("CANCELAR"){dialogInterface,_->dialogInterface.dismiss()}
+
+
         builder.setPositiveButton("ACEPTAR"){dialogInterface,_->
                 //dialogInterface.dismiss()
 
@@ -130,6 +136,11 @@ class FoodListFragment : Fragment() {
              }else if(rdb_eliminar.isChecked){
                  Common.category_selected!!.foods!!.removeAt(pos)
                  updateFood(Common.category_selected!!.foods,true)
+             }else if(rdb_edit_size.isChecked){
+                 Common.foodModelSelected = foodModels!![pos]
+                 startActivity(Intent(context!!,SizeAddonEditActivity::class.java))
+                 EventBus.getDefault().postSticky(AddonSizeEditEvent(false,pos))
+
              }else{
                  Toast.makeText(context,"Seleccione una opcion",Toast.LENGTH_SHORT).show()
 
