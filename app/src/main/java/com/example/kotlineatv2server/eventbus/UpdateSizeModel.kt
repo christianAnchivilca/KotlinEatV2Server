@@ -5,9 +5,11 @@ import com.example.kotlineatv2server.model.SizeModel
 
 class UpdateSizeModel {
     var sizeModelList:List<SizeModel>?=null
-    constructor(){}
-    constructor(sizeModelList:List<SizeModel?>){
 
+
+    constructor(){}
+    constructor(sizeModelList:List<SizeModel>?){
+        this.sizeModelList = sizeModelList
 
     }
 

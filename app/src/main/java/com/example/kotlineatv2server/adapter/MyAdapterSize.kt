@@ -13,7 +13,7 @@ import com.example.kotlineatv2server.eventbus.SelectSizeModel
 import com.example.kotlineatv2server.eventbus.UpdateSizeModel
 import com.example.kotlineatv2server.model.SizeModel
 import org.greenrobot.eventbus.EventBus
-import org.w3c.dom.Text
+
 
 class MyAdapterSize(var context: Context,var sizeModelList:MutableList<SizeModel>):RecyclerView.Adapter<MyAdapterSize.MyViewHolder>() {
 
@@ -93,6 +93,7 @@ class MyAdapterSize(var context: Context,var sizeModelList:MutableList<SizeModel
 
         fun setListener(listener:IRecyclerItemClickListener?){
             this.listener = listener
+
         }
 
     }

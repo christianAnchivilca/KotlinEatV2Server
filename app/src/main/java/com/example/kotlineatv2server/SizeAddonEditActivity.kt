@@ -9,11 +9,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kotlineatv2server.adapter.MyAdapterSize
+import com.example.kotlineatv2server.adapter.MyAddonAdapter
 import com.example.kotlineatv2server.common.Common
-import com.example.kotlineatv2server.eventbus.AddonSizeEditEvent
-import com.example.kotlineatv2server.eventbus.SelectSizeModel
-import com.example.kotlineatv2server.eventbus.ToasEvent
-import com.example.kotlineatv2server.eventbus.UpdateSizeModel
+import com.example.kotlineatv2server.eventbus.*
+import com.example.kotlineatv2server.model.AddonModel
 import com.example.kotlineatv2server.model.SizeModel
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_size_addon_edit.*
@@ -26,6 +25,7 @@ class SizeAddonEditActivity : AppCompatActivity() {
 
     //variables miembros
     var adapter:MyAdapterSize?=null
+    var adapterAddon:MyAddonAdapter?=null
     var foodEditPosition = -1
     private var needSave = false
     private var isAddon = false
@@ -74,7 +74,7 @@ class SizeAddonEditActivity : AppCompatActivity() {
             Common.category_selected!!.foods!!.set(foodEditPosition,Common.foodModelSelected!!)
             val updateData : MutableMap<String,Any> = HashMap()
             updateData["foods"] = Common.category_selected!!.foods!!
-            FirebaseDatabase.getInstance().getReference("Category")
+            FirebaseDatabase.getInstance().getReference(Common.CATEGORY_REFERENCE)
                 .child(Common.category_selected!!.menu_id!!)
                 .updateChildren(updateData)
                 .addOnFailureListener{
@@ -129,7 +129,13 @@ class SizeAddonEditActivity : AppCompatActivity() {
                 }
 
             }else{// ADDON
+                if (adapterAddon != null){
+                    val addonModel = AddonModel()
+                    addonModel.name = edt_name.text.toString()
+                    addonModel.price = edt_price.text.toString().toLong()
+                    adapterAddon!!.addNewAddon(addonModel)
 
+                }
             }
 
         }
@@ -146,6 +152,13 @@ class SizeAddonEditActivity : AppCompatActivity() {
                 }
 
             }else{//addon
+                if (adapterAddon != null){
+                    val addonModel = AddonModel()
+                    addonModel.name = edt_name.text.toString()
+                    addonModel.price = edt_price.text.toString().toLong()
+                    adapterAddon!!.editAddon(addonModel)
+
+                }
 
             }
 
@@ -175,10 +188,17 @@ class SizeAddonEditActivity : AppCompatActivity() {
                 adapter = MyAdapterSize(this,Common.foodModelSelected!!.size.toMutableList())
                 foodEditPosition = event.pos
                 recycler_addon_size!!.adapter = adapter
-
-
-
+                isAddon = event.isAddon
             }
+
+        }else{ // addon
+            if(Common.foodModelSelected!!.addon != null){
+                adapterAddon = MyAddonAdapter(this,Common.foodModelSelected!!.addon.toMutableList())
+                foodEditPosition = event.pos
+                recycler_addon_size!!.adapter = adapterAddon
+                isAddon = event.isAddon
+            }
+
         }
 
     }
@@ -195,6 +215,18 @@ class SizeAddonEditActivity : AppCompatActivity() {
 
     }
 
+    //ESCUCHAMOS UNO DE LOS DOS EVENTOS ENVIADO DESDE EL ADAPTADOR CUANDO SE ACTUALIZA EL SIZE
+    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
+    fun onAddonModelUpdate(event:UpdateAddonModel){
+
+        if (event.addonModelList != null){ //size
+            needSave = true
+            Common.foodModelSelected!!.addon = event.addonModelList!! //update
+
+        }
+
+    }
+
 
     //ESCUCHAMOS UNO DE LOS DOS EVENTOS ENVIADO DESDE EL ADAPTADOR CUANDO SE SELECCIONA UN ITEM DEL RECYCLER
     @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
@@ -203,6 +235,19 @@ class SizeAddonEditActivity : AppCompatActivity() {
         if (event.sizeModel != null){
             edt_name.setText(event.sizeModel.name)
             edt_price.setText(event.sizeModel.price.toString())
+            btn_edit.isEnabled = true
+        }else
+            btn_edit.isEnabled = false
+
+    }
+
+    //ESCUCHAMOS UNO DE LOS DOS EVENTOS ENVIADO DESDE EL ADAPTADOR CUANDO SE SELECCIONA UN ITEM DEL RECYCLER
+    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
+    fun onSelectAddon(event:SelectAddonModel){
+
+        if (event.addonModel != null){
+            edt_name.setText(event.addonModel.name)
+            edt_price.setText(event.addonModel.price.toString())
             btn_edit.isEnabled = true
         }else
             btn_edit.isEnabled = false

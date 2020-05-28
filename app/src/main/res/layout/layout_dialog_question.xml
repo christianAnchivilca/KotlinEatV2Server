@@ -28,7 +28,13 @@
 
         <RadioButton
             android:id="@+id/rdb_editar_size"
-            android:text="Editar Addon/Size"
+            android:text="Editar Size"
+            android:padding="4dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:id="@+id/rdb_editar_addon"
+            android:text="Editar Addon"
             android:padding="4dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>

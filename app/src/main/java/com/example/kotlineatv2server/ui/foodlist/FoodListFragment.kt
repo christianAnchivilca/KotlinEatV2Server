@@ -123,6 +123,7 @@ class FoodListFragment : Fragment() {
         val rdb_editar = itemview.findViewById<View>(R.id.rdb_editar_food)as RadioButton
         val rdb_eliminar = itemview.findViewById<View>(R.id.rdb_eliminar_food)as RadioButton
         val rdb_edit_size = itemview.findViewById<View>(R.id.rdb_editar_size) as RadioButton
+        val rdb_edit_addon = itemview.findViewById<View>(R.id.rdb_editar_addon) as RadioButton
 
         builder.setNegativeButton("CANCELAR"){dialogInterface,_->dialogInterface.dismiss()}
 
@@ -140,6 +141,11 @@ class FoodListFragment : Fragment() {
                  Common.foodModelSelected = foodModels!![pos]
                  startActivity(Intent(context!!,SizeAddonEditActivity::class.java))
                  EventBus.getDefault().postSticky(AddonSizeEditEvent(false,pos))
+
+             }else if(rdb_edit_addon.isChecked){
+                 Common.foodModelSelected = foodModels!![pos]
+                 startActivity(Intent(context!!,SizeAddonEditActivity::class.java))
+                 EventBus.getDefault().postSticky(AddonSizeEditEvent(true,pos))
 
              }else{
                  Toast.makeText(context,"Seleccione una opcion",Toast.LENGTH_SHORT).show()
