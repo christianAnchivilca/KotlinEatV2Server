@@ -93,7 +93,6 @@ class MyAdapterSize(var context: Context,var sizeModelList:MutableList<SizeModel
 
         fun setListener(listener:IRecyclerItemClickListener?){
             this.listener = listener
-
         }
 
     }
