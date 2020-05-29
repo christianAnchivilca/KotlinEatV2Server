@@ -14,4 +14,5 @@
     <string name="menu_sign_out">Salir</string>
     <string name="popular_category">Categorias Populares</string>
     <string name="action_search">search</string>
+    <string name="menu_order">ordenes</string>
 </resources>

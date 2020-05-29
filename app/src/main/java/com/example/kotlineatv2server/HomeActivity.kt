@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.NavController
 import com.example.kotlineatv2server.common.Common
@@ -48,7 +50,7 @@ class HomeActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_category,R.id.nav_food_list
+                R.id.nav_category,R.id.nav_food_list,R.id.nav_order
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -66,6 +68,11 @@ class HomeActivity : AppCompatActivity() {
                     if (menuClick != menu.itemId)
                         navController.navigate(R.id.nav_category)
 
+                }else if(menu.itemId == R.id.nav_order){
+
+                    if (menuClick != menu.itemId)
+                        navController.navigate(R.id.nav_order)
+
                 }
 
                 menuClick = menu.itemId
@@ -75,6 +82,11 @@ class HomeActivity : AppCompatActivity() {
             }
 
         })
+
+        //view
+        val headerView = navView.getHeaderView(0)
+        val txt_user = headerView.findViewById<View>(R.id.txt_user) as TextView
+        Common.setSpanString("Hey ",Common.currentServerUser!!.name!!.toString(),txt_user)
 
     }
 
