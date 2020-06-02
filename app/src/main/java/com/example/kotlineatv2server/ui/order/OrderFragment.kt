@@ -153,8 +153,6 @@ class OrderFragment:Fragment() {
 
             }else if(rdb_eliminar.isChecked){
                 val orderModel = adapter!!.getItemAtPosition(pos)
-
-
                 val alerta = AlertDialog.Builder(this@OrderFragment.context!!)
                     .setTitle("Eliminar")
                     .setMessage("¿Seguro de eliminar la orden?")
