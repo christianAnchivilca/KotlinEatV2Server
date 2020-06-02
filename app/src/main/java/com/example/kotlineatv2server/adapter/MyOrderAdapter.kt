@@ -17,7 +17,7 @@ import org.w3c.dom.Text
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MyOrderAdapter(internal var context: Context,internal var orderList:List<OrderModel>):
+class MyOrderAdapter(internal var context: Context,internal var orderList:MutableList<OrderModel>):
     RecyclerView.Adapter<MyOrderAdapter.MyViewHolder>() {
 
     internal var calendar: Calendar
@@ -47,7 +47,7 @@ class MyOrderAdapter(internal var context: Context,internal var orderList:List<O
         Common.setSpanStringColor("Order status: ",Common.convertStatusToString(orderList[position].orderStatus),
             holder.txt_order_status, Color.parseColor("#005758"))
 
-        Common.setSpanStringColor("Num of items: ",if (orderList[position].cartItemList != null) "0" else
+        Common.setSpanStringColor("Num of items: ",if (orderList[position].cartItemList == null) "0" else
             orderList[position].cartItemList!!.size.toString(),
             holder.txt_num_item, Color.parseColor("#005754"))
 
@@ -56,6 +56,17 @@ class MyOrderAdapter(internal var context: Context,internal var orderList:List<O
 
 
 
+
+    }
+
+    fun getItemAtPosition(pos: Int): OrderModel {
+
+        return orderList[pos]
+
+    }
+
+    fun removeItem(pos: Int) {
+        orderList.removeAt(pos)
 
     }
 

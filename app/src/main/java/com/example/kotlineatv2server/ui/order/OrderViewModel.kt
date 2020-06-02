@@ -16,7 +16,7 @@ import kotlin.collections.ArrayList
 
 class OrderViewModel:ViewModel(), IOrderCallbackListener {
     override fun onOrderLoadSuccess(orderModel: List<OrderModel>) {
-        if (orderModel.size > 0){
+        if (orderModel.size >= 0){
 
             Collections.sort(orderModel){t1,t2->
                 if (t1.createDate < t2.createDate)return@sort -1
@@ -48,16 +48,15 @@ class OrderViewModel:ViewModel(), IOrderCallbackListener {
     }
 
 
-    private fun loadOrder(status: Int) {
+    fun loadOrder(status: Int) {
+        /*  Lectura de datos una sola vez => addListenerForSingleValueEvent
+         En algunos casos, puede resultar útil invocar una devolución de llamada una sola vez y luego quitarla de inmediato.
+     * */
         val tempList:MutableList<OrderModel> = ArrayList()
-        val orderRef =FirebaseDatabase.getInstance()
+        val orderRef = FirebaseDatabase.getInstance()
             .getReference(Common.ORDER_REF)
             .orderByChild("orderStatus")
             .equalTo(status.toDouble())
-        /*  Lectura de datos una sola vez => addListenerForSingleValueEvent
-             En algunos casos, puede resultar útil invocar una devolución de llamada una sola vez y luego quitarla de inmediato.
-         * */
-
         orderRef.addListenerForSingleValueEvent(object :ValueEventListener{
             override fun onCancelled(error: DatabaseError) {
                orderCallbackListener.onOrderLoadFailed(error.message)
