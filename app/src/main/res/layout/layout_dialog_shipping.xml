@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/txt_title"
+        android:text="Actualizar orden"
+        android:textSize="32sp"
+        android:fontFamily="@font/brandon_medium"
+        android:textColor="@android:color/black"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:layout_below="@+id/txt_title"
+        android:id="@+id/txt_title_small"
+        android:text="Actualizar orden Status"
+        android:textSize="22sp"
+        android:fontFamily="@font/brandon_medium"
+        android:textColor="@android:color/darker_gray"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_below="@+id/txt_title_small"
+        android:id="@+id/txt_status"
+        android:text="Status: Placed"
+        android:textSize="22sp"
+        android:fontFamily="@font/brandon_medium"
+        android:textColor="@android:color/darker_gray"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <RadioGroup
+        android:layout_below="@+id/txt_status"
+        android:id="@+id/rdi_group"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/rdi_shipping"
+            android:text="En camino"
+            android:checked="true"
+            android:fontFamily="@font/brandon_medium"
+            android:textSize="22sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <RadioButton
+            android:id="@+id/rdi_cancelled"
+            android:text="Cancelado"
+            android:textColor="@android:color/holo_red_dark"
+            android:fontFamily="@font/brandon_medium"
+            android:textSize="22sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </RadioGroup>
+
+    <ScrollView
+        android:layout_below="@+id/rdi_group"
+        android:scrollbars="none"
+        android:layout_above="@+id/layout_button"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:text="a"
+            android:textSize="500sp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </ScrollView>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/layout_button"
+        android:layout_width="match_parent"
+        android:gravity="right"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:padding="8dp"
+            android:text="Cancelar"
+            android:textColor="@android:color/darker_gray"
+            android:background="@android:color/transparent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btn_ok"
+            android:padding="8dp"
+            android:text="Aceptar"
+            android:textColor="@android:color/holo_red_dark"
+            android:background="@android:color/transparent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+
+
+</RelativeLayout>

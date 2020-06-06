@@ -24,6 +24,7 @@ import com.example.kotlineatv2server.eventbus.CategoryClick
 import com.example.kotlineatv2server.eventbus.ChangeMenuClick
 import com.example.kotlineatv2server.eventbus.ToasEvent
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -42,7 +43,7 @@ class HomeActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-
+        subscribeToTopic(Common.getNewOrderTopic())
         drawerLayout = findViewById(R.id.drawer_layout)
         navView= findViewById(R.id.nav_view)
         navController = findNavController(R.id.nav_host_fragment)
@@ -66,12 +67,19 @@ class HomeActivity : AppCompatActivity() {
                 else if(menu.itemId == R.id.nav_category)
                 {
                     if (menuClick != menu.itemId)
+                    {
+                        navController.popBackStack()//clear back stack
                         navController.navigate(R.id.nav_category)
+                    }
 
                 }else if(menu.itemId == R.id.nav_order){
 
                     if (menuClick != menu.itemId)
+                    {
+                        navController.popBackStack()//clear back stack
                         navController.navigate(R.id.nav_order)
+                    }
+
 
                 }
 
@@ -88,6 +96,22 @@ class HomeActivity : AppCompatActivity() {
         val txt_user = headerView.findViewById<View>(R.id.txt_user) as TextView
         Common.setSpanString("Hey ",Common.currentServerUser!!.name!!.toString(),txt_user)
 
+        menuClick = R.id.nav_category  // default
+
+    }
+
+    private fun subscribeToTopic(newOrderTopic: String) {
+
+        FirebaseMessaging.getInstance()
+            .subscribeToTopic(newOrderTopic)
+            .addOnFailureListener{message ->
+                Toast.makeText(this@HomeActivity,""+message.toString(),Toast.LENGTH_LONG).show()}
+            .addOnCompleteListener {
+                 task ->
+                if (!task.isSuccessful){
+                    Toast.makeText(this@HomeActivity,"Subscricion ha fallado",Toast.LENGTH_LONG).show()
+                }
+            }
     }
 
     private fun signOut(){
