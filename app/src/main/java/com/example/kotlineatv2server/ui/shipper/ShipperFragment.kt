@@ -1,10 +1,9 @@
 package com.example.kotlineatv2server.ui.shipper
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.SearchManager
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
 import android.widget.Toast
@@ -25,7 +24,11 @@ import dmax.dialog.SpotsDialog
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import android.R
+
+import android.view.*
+import android.widget.EditText
+import android.widget.ImageView
+import com.example.kotlineatv2server.R
 import com.google.firebase.database.core.Context
 
 
@@ -35,8 +38,11 @@ class ShipperFragment:Fragment() {
     private var shipperModelsList:List<ShipperModel> = ArrayList<ShipperModel>()
     private var adapter:MyShipperAdapter?=null
     private lateinit var dialog: AlertDialog
-
     private lateinit var layoutAnimationControler: LayoutAnimationController
+     var saveBeforeSearchList:List<ShipperModel> = ArrayList<ShipperModel>()
+
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -53,6 +59,7 @@ class ShipperFragment:Fragment() {
         shipperViewModel.getShipperList().observe(this, Observer { lista->
             dialog.dismiss()
             shipperModelsList = lista
+            saveBeforeSearchList = lista
             adapter = MyShipperAdapter(context!!,lista)
             recycler_shipper!!.adapter = adapter
             recycler_shipper!!.layoutAnimation = layoutAnimationControler
@@ -62,15 +69,73 @@ class ShipperFragment:Fragment() {
     }
 
     private fun init(root: View) {
+        setHasOptionsMenu(true)
         dialog = SpotsDialog.Builder().setContext(context).setCancelable(false).build()
         dialog.show()
-        layoutAnimationControler = AnimationUtils.loadLayoutAnimation(context,com.example.kotlineatv2server.R.anim.layout_item_from_left)
-        recycler_shipper = root.findViewById(com.example.kotlineatv2server.R.id.recycler_shipper) as RecyclerView
+        layoutAnimationControler = AnimationUtils.loadLayoutAnimation(context,R.anim.layout_item_from_left)
+        recycler_shipper = root.findViewById(R.id.recycler_shipper) as RecyclerView
         recycler_shipper!!.setHasFixedSize(true)
         val layoutManager = LinearLayoutManager(context)
         recycler_shipper!!.layoutManager = layoutManager
 
     }
+
+
+    @SuppressLint("UseRequireInsteadOfGet")
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.food_list_menu,menu)
+        //create search view
+        val menuItem = menu.findItem(R.id.action_search)
+        val searchManager = activity!!.getSystemService(android.content.Context.SEARCH_SERVICE) as SearchManager
+        val searchView = menuItem.actionView as androidx.appcompat.widget.SearchView
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(activity!!.componentName!!))
+
+        searchView.setOnQueryTextListener(object:androidx.appcompat.widget.SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(search: String?): Boolean {
+                startSearchShipper(search)
+                return true
+            }
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+
+        })
+        //clear text when click to clear button
+        val closeButton = searchView.findViewById<View>(R.id.search_close_btn) as ImageView
+        closeButton.setOnClickListener{
+            val ed = searchView.findViewById<View>(R.id.search_src_text) as EditText
+            //clear text
+            ed.setText("")
+            //clear query
+            searchView.setQuery("",false)
+            //collapse action view
+            searchView.onActionViewCollapsed()
+            //collapse the search widget
+            menuItem.collapseActionView()
+            //restore result to original
+            shipperViewModel.loadShippers()
+        }
+
+
+    }
+
+    private fun startSearchShipper(search: String?) {
+        val resultShipper: MutableList<ShipperModel> = ArrayList()
+        for (i in shipperModelsList.indices){
+
+            val shipperModel = shipperModelsList!![i]
+            if (shipperModel.phone!!.toLowerCase().contains(search!!.toLowerCase())){
+
+                resultShipper.add(shipperModel)
+            }
+        }
+
+        //update search result
+        shipperViewModel!!.getShipperList().value = resultShipper
+
+    }
+
+
 
     override fun onStart() {
         super.onStart()

@@ -19,6 +19,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,16 +27,15 @@ import com.example.kotlineatv2server.R
 import com.example.kotlineatv2server.SizeAddonEditActivity
 import com.example.kotlineatv2server.adapter.MyFoodListAdapter
 import com.example.kotlineatv2server.adapter.MyOrderAdapter
+import com.example.kotlineatv2server.adapter.MyShipperSelectedAdapter
+import com.example.kotlineatv2server.callback.IShipperLoadCallbackListener
 import com.example.kotlineatv2server.common.BottomSheetOrderFragment
 import com.example.kotlineatv2server.common.Common
 import com.example.kotlineatv2server.common.SwipeToDeleteCallback
 import com.example.kotlineatv2server.eventbus.AddonSizeEditEvent
 import com.example.kotlineatv2server.eventbus.ChangeMenuClick
 import com.example.kotlineatv2server.eventbus.LoadOrderEvent
-import com.example.kotlineatv2server.model.FCMSendData
-import com.example.kotlineatv2server.model.FoodModel
-import com.example.kotlineatv2server.model.OrderModel
-import com.example.kotlineatv2server.model.TokenModel
+import com.example.kotlineatv2server.model.*
 import com.example.kotlineatv2server.remote.IFCMService
 import com.example.kotlineatv2server.remote.RetrofitFCMClient
 import com.example.kotlineatv2server.ui.foodlist.FoodListViewModel
@@ -61,7 +61,43 @@ import retrofit2.create
 import java.lang.StringBuilder
 import java.util.jar.Manifest
 
-class OrderFragment:Fragment() {
+class OrderFragment:Fragment(), IShipperLoadCallbackListener {
+    override fun onShipperLoadSuccess(shipperModelList: List<ShipperModel>) {
+           //do nothing
+    }
+
+    override fun onShipperLoadSuccess(
+        pos: Int,
+        orderModel: OrderModel?,
+        shipperList: List<ShipperModel>?,
+        dialog: AlertDialog?,
+        ok: Button?,
+        cancel: Button?,
+        rdi_shipping: RadioButton?,
+        rdi_shipped: RadioButton?,
+        rdi_cancelled: RadioButton?,
+        rdi_delete: RadioButton?,
+        rdi_restore_placed: RadioButton?
+    ) {
+
+        if (recycler_shipper != null){
+            recycler_shipper!!.setHasFixedSize(true)
+            val layoutManager = LinearLayoutManager(context!!)
+            recycler_shipper!!.layoutManager = layoutManager
+            recycler_shipper!!.addItemDecoration(DividerItemDecoration(context!!,layoutManager.orientation))
+            myShipperSelectedAdapter = MyShipperSelectedAdapter(context!!,shipperList!!)
+            recycler_shipper!!.adapter = myShipperSelectedAdapter
+
+        }
+        showDialog(pos,orderModel!!,dialog!!,ok!!,cancel!!,rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed)
+
+
+    }
+
+    override fun onShipperLoadFailed(message: String) {
+        Toast.makeText(context,""+message,Toast.LENGTH_LONG).show()
+
+    }
 
 
     private val compositeDisposable = CompositeDisposable()
@@ -72,6 +108,10 @@ class OrderFragment:Fragment() {
     lateinit var layoutAnimationController:LayoutAnimationController
     private var adapter : MyOrderAdapter?=null
     private var txt_order_filter:TextView?=null
+
+    var myShipperSelectedAdapter:MyShipperSelectedAdapter?=null
+    lateinit var iShipperLoadCallbackListener:IShipperLoadCallbackListener
+    var recycler_shipper:RecyclerView?=null
 
 
 
@@ -104,8 +144,8 @@ class OrderFragment:Fragment() {
 
     private fun initView(root: View) {
 
+        iShipperLoadCallbackListener = this
         ifcService = RetrofitFCMClient.getInstance().create(IFCMService::class.java)
-
         setHasOptionsMenu(true)
         recycler_order = root.findViewById(R.id.recycler_order) as RecyclerView
         recycler_order.setHasFixedSize(true)
@@ -236,6 +276,9 @@ class OrderFragment:Fragment() {
         if (orderModel.orderStatus == -1)//cancelled
         {
             layout_dialog = LayoutInflater.from(context!!).inflate(R.layout.layout_dialog_cancelled,null)
+
+
+
             builder = AlertDialog.Builder(context!!)
                 .setView(layout_dialog)
 
@@ -246,6 +289,7 @@ class OrderFragment:Fragment() {
         }else if (orderModel.orderStatus == 0)//placed
         {
             layout_dialog = LayoutInflater.from(context!!).inflate(R.layout.layout_dialog_shipping,null)
+            recycler_shipper = layout_dialog.findViewById(R.id.recycler_shipper) as RecyclerView
             builder = AlertDialog.Builder(context!!,
                 android.R.style.Theme_Material_Light_NoActionBar_Fullscreen)
                 .setView(layout_dialog)
@@ -255,13 +299,10 @@ class OrderFragment:Fragment() {
 
         }
         else
-
         {
             layout_dialog = LayoutInflater.from(context!!).inflate(R.layout.layout_dialog_shipped,null)
             builder = AlertDialog.Builder(context!!)
                 .setView(layout_dialog)
-
-
             rdi_shipped = layout_dialog.findViewById<View>(R.id.rdi_shipped) as RadioButton
             rdi_cancelled = layout_dialog.findViewById<View>(R.id.rdi_cancelled) as RadioButton
 
@@ -276,34 +317,132 @@ class OrderFragment:Fragment() {
             .append(Common.convertStatusToString(orderModel.orderStatus)).append(")"))
 
         val dialog = builder.create()
-        dialog.show()
-        btn_cancel.setOnClickListener{dialog.dismiss()}
-        btn_ok.setOnClickListener {
-            dialog.dismiss()
-            if (rdi_cancelled != null && rdi_cancelled!!.isChecked)
-            {
-                updateOrder(pos,orderModel,-1)
+        if (orderModel.orderStatus == 0)//shipping
+            loadShipperList(pos,orderModel,dialog,btn_ok,
+                btn_cancel,rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed)
+        else
+            showDialog(pos,orderModel,dialog,btn_ok,
+                btn_cancel,rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed)
+    }
+
+    private fun loadShipperList(
+        pos: Int,
+        orderModel: OrderModel,
+        dialog: AlertDialog,
+        btn_ok: Button,
+        btn_cancel: Button,
+        rdi_shipping: RadioButton?,
+        rdi_shipped: RadioButton?,
+        rdi_cancelled: RadioButton?,
+        rdi_delete: RadioButton?,
+        rdi_restore_placed: RadioButton?
+    ) {
+
+        val tempList : MutableList<ShipperModel> = ArrayList<ShipperModel>()
+        val shipperRef = FirebaseDatabase.getInstance().getReference(Common.SHIPPER_REF)
+        val shipperActive = shipperRef.orderByChild("active").equalTo(true)
+        shipperActive.addListenerForSingleValueEvent(object:ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+                iShipperLoadCallbackListener.onShipperLoadFailed(p0.message)
+            }
+
+            override fun onDataChange(p0: DataSnapshot) {
+                for (item in p0.children){
+                    val shipperModel = item.getValue<ShipperModel>(ShipperModel::class.java)
+                    shipperModel!!.key = item.key
+                    tempList.add(shipperModel)
+
+                }
+                iShipperLoadCallbackListener.onShipperLoadSuccess(pos,orderModel,
+                    tempList,dialog,btn_ok,btn_cancel,rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed)
 
 
             }
+
+        })
+
+    }
+
+    private fun showDialog(
+        pos: Int,
+        orderModel: OrderModel,
+        dialog: AlertDialog,
+        btn_ok: Button,
+        btn_cancel: Button,
+        rdi_shipping: RadioButton?,
+        rdi_shipped: RadioButton?,
+        rdi_cancelled: RadioButton?,
+        rdi_delete: RadioButton?,
+        rdi_restore_placed: RadioButton?
+    ) {
+        dialog.show()
+        btn_cancel.setOnClickListener{dialog.dismiss()}
+        btn_ok.setOnClickListener {
+
+            if (rdi_cancelled != null && rdi_cancelled!!.isChecked)
+            {
+                updateOrder(pos,orderModel,-1)
+                dialog.dismiss()
+            }
             else if(rdi_shipping != null && rdi_shipping!!.isChecked)
             {
-                updateOrder(pos,orderModel,1)
+                //updateOrder(pos,orderModel,1)
+                var shipperModel:ShipperModel? = null
+
+                if (myShipperSelectedAdapter != null){
+                    shipperModel = myShipperSelectedAdapter!!.selectedShipper
+                    if (shipperModel != null){
+
+                        createShippingOrder(shipperModel,orderModel,dialog)
+
+                    }else
+                        Toast.makeText(context!!,"Seleccione un repartidor",Toast.LENGTH_LONG).show()
+
+                }
+
             }
             else if(rdi_shipped != null && rdi_shipped!!.isChecked)
             {
                 updateOrder(pos,orderModel,2)
+                dialog.dismiss()
             }
             else if(rdi_restore_placed != null && rdi_restore_placed!!.isChecked)
             {
                 updateOrder(pos,orderModel,0)
+                dialog.dismiss()
 
             }
             else if(rdi_delete != null && rdi_delete!!.isChecked)
             {
                 deleteOrder(orderModel,pos)
+                dialog.dismiss()
             }
         }
+    }
+
+    private fun createShippingOrder(shipperModel: ShipperModel, orderModel: OrderModel, dialog: AlertDialog) {
+
+        val shippingOrder = ShippingOrderModel()
+        shippingOrder.shipperName = shipperModel.name
+        shippingOrder.shipperPhone = shipperModel.phone
+        shippingOrder.orderModel = orderModel
+        shippingOrder.isStartTrip = false
+        shippingOrder.currentLat = -1.0
+        shippingOrder.currentLng = -1.0
+        //create shipping order in firebase
+        FirebaseDatabase.getInstance().getReference(Common.SHIPPING_ORDER_REF)
+            .push()
+            .setValue(shippingOrder)
+            .addOnFailureListener{e->
+                dialog.dismiss()
+                Toast.makeText(context,""+e.message,Toast.LENGTH_LONG).show()}
+            .addOnCompleteListener {task ->
+                if (task.isSuccessful){
+                    dialog.dismiss()
+                    Toast.makeText(context,"Order enviada al repartidor: "+shipperModel.name,Toast.LENGTH_LONG).show()
+                }
+            }
+
     }
 
 

@@ -1,10 +1,14 @@
 package com.example.kotlineatv2server.ui.shipper
 
+import android.widget.Button
+import android.widget.RadioButton
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.kotlineatv2server.callback.IShipperLoadCallbackListener
 import com.example.kotlineatv2server.common.Common
 import com.example.kotlineatv2server.model.CategoryModel
+import com.example.kotlineatv2server.model.OrderModel
 import com.example.kotlineatv2server.model.ShipperModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -12,6 +16,22 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class ShipperViewModel:ViewModel(), IShipperLoadCallbackListener {
+    override fun onShipperLoadSuccess(
+        pos: Int,
+        orderModel: OrderModel?,
+        shipperList: List<ShipperModel>?,
+        dialog: AlertDialog?,
+        ok: Button?,
+        cancel: Button?,
+        rdi_shipping: RadioButton?,
+        rdi_shipped: RadioButton?,
+        rdi_cancelled: RadioButton?,
+        rdi_delete: RadioButton?,
+        rdi_restore_placed: RadioButton?
+    ) {
+        //do nothing
+    }
+
     private var shipperListMutable:MutableLiveData<List<ShipperModel>>?=null
     private var messageError:MutableLiveData<String> = MutableLiveData()
     private val shipperCallbackListener:IShipperLoadCallbackListener
@@ -31,7 +51,7 @@ class ShipperViewModel:ViewModel(), IShipperLoadCallbackListener {
 
     }
 
-    private fun loadShippers() {
+     fun loadShippers() {
         //get data of firebase
         val listaShippers = ArrayList<ShipperModel>()
         val shipperRef = FirebaseDatabase.getInstance().getReference(Common.SHIPPER_REF)
