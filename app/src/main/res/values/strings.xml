@@ -17,6 +17,7 @@
     <string name="menu_category">Categorias</string>
     <string name="menu_sign_out">Salir</string>
     <string name="popular_category">Categorias Populares</string>
-    <string name="action_search">search</string>
-    <string name="menu_order">ordenes</string>
+    <string name="action_search">Search</string>
+    <string name="menu_order">Ordenes</string>
+    <string name="menu_shipper">Repartidores</string>
 </resources>

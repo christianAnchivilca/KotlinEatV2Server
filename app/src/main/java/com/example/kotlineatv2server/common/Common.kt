@@ -29,6 +29,7 @@ import kotlin.random.Random
 
 object Common {
 
+    val SHIPPER_REF: String = "Shippers"
     val ORDER_REF:String ="Order"
     var foodModelSelected: FoodModel?=null
     var category_selected: CategoryModel?=null
@@ -76,6 +77,14 @@ object Common {
             5 -> return "Viernes"
             6 -> return "Sabado"
             7 -> return "Domingo"
+            else -> return "Unknow"
+        }
+    }
+    fun getStatusShipper(active: Boolean): String {
+        when(active){
+            true -> return "Activado"
+            false -> return "Desactivado"
+
             else -> return "Unknow"
         }
     }

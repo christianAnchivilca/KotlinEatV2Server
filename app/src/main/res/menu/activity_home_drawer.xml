@@ -8,8 +8,6 @@
             android:id="@+id/nav_category"
             android:icon="@drawable/ic_restaurant_black_24dp"
             android:title="@string/menu_category" />
-
-
     </group>
 
     <group>
@@ -20,6 +18,13 @@
 
 
     </group>
+    <group>
+        <item
+            android:id="@+id/nav_shipper"
+            android:icon="@drawable/ic_shipping_black_24dp"
+            android:title="@string/menu_shipper" />
+    </group>
+
 
     <group >
         <item
