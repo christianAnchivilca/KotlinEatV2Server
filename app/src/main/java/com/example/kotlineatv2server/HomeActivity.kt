@@ -20,10 +20,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.NavController
 import com.example.kotlineatv2server.common.Common
+
 import com.example.kotlineatv2server.eventbus.CategoryClick
 import com.example.kotlineatv2server.eventbus.ChangeMenuClick
 import com.example.kotlineatv2server.eventbus.ToasEvent
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.messaging.FirebaseMessaging
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -42,6 +44,7 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        updateToken()
 
         subscribeToTopic(Common.getNewOrderTopic())
         drawerLayout = findViewById(R.id.drawer_layout)
@@ -109,6 +112,17 @@ class HomeActivity : AppCompatActivity() {
 
         menuClick = R.id.nav_category  // default
 
+    }
+
+    private fun updateToken(){
+        FirebaseInstanceId.getInstance().instanceId
+            .addOnFailureListener{
+                Toast.makeText(this,""+it.message,Toast.LENGTH_LONG).show()
+            }
+            .addOnSuccessListener{
+                    result->
+                Common.updateToken(this@HomeActivity,result.token,true,false)
+            }
     }
 
     private fun subscribeToTopic(newOrderTopic: String) {

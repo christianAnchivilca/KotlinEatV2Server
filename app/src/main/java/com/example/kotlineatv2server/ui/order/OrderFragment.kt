@@ -16,6 +16,7 @@ import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -87,7 +88,6 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
             recycler_shipper!!.addItemDecoration(DividerItemDecoration(context!!,layoutManager.orientation))
             myShipperSelectedAdapter = MyShipperSelectedAdapter(context!!,shipperList!!)
             recycler_shipper!!.adapter = myShipperSelectedAdapter
-
         }
         showDialog(pos,orderModel!!,dialog!!,ok!!,cancel!!,rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed)
 
@@ -393,13 +393,11 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
                     shipperModel = myShipperSelectedAdapter!!.selectedShipper
                     if (shipperModel != null){
 
-                        createShippingOrder(shipperModel,orderModel,dialog)
+                        createShippingOrder(pos,shipperModel,orderModel,dialog)
 
                     }else
                         Toast.makeText(context!!,"Seleccione un repartidor",Toast.LENGTH_LONG).show()
-
                 }
-
             }
             else if(rdi_shipped != null && rdi_shipped!!.isChecked)
             {
@@ -420,7 +418,7 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
         }
     }
 
-    private fun createShippingOrder(shipperModel: ShipperModel, orderModel: OrderModel, dialog: AlertDialog) {
+    private fun createShippingOrder(pos:Int,shipperModel: ShipperModel, orderModel: OrderModel, dialog: AlertDialog) {
 
         val shippingOrder = ShippingOrderModel()
         shippingOrder.shipperName = shipperModel.name
@@ -439,7 +437,60 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
             .addOnCompleteListener {task ->
                 if (task.isSuccessful){
                     dialog.dismiss()
-                    Toast.makeText(context,"Order enviada al repartidor: "+shipperModel.name,Toast.LENGTH_LONG).show()
+
+                    //load token
+                    FirebaseDatabase.getInstance()
+                        .getReference(Common.TOKEN_REF)
+                        .child(shipperModel.key!!)
+                        .addListenerForSingleValueEvent(object:ValueEventListener{
+                            override fun onCancelled(p0: DatabaseError) {
+                                dialog.dismiss()
+                                Toast.makeText(context!!,""+p0.message,Toast.LENGTH_LONG).show()
+                            }
+
+                            override fun onDataChange(dataSnapShot: DataSnapshot) {
+                                if (dataSnapShot.exists()){
+
+                                    val tokenModel = dataSnapShot.getValue(TokenModel::class.java)
+                                    val notiData = HashMap<String,String>()
+
+                                    notiData.put(Common.NOTI_TITLE,"Tienes nueva orden")
+                                    notiData.put(Common.NOTI_CONTENT,StringBuilder("tienes un nuevo pedido que necesitas enviar")
+                                        .append(orderModel.userPhone).toString())
+
+
+
+                                    val sendData = FCMSendData(tokenModel!!.token!!,notiData)
+                                    compositeDisposable.add(
+                                        ifcService.sendNotification(sendData)
+                                            .subscribeOn(Schedulers.io())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe({
+                                                    fcmResponse->
+                                                dialog.dismiss()
+                                                if (fcmResponse.success == 1){
+                                                    updateOrder(pos,orderModel,1)
+                                                    //Toast.makeText(context,"Orden Actualizado con exito",Toast.LENGTH_LONG).show()
+                                                }else{
+                                                    Toast.makeText(context!!,"Fallo el envio de notificacion",Toast.LENGTH_LONG).show()
+                                                }
+
+                                            }, {
+                                                dialog.dismiss()
+                                                Toast.makeText(context!!,""+it.message,Toast.LENGTH_LONG).show()
+
+                                            })
+                                    )
+
+                                }else {
+                                    dialog.dismiss()
+                                    Toast.makeText(context!!,"Token no encontrado",Toast.LENGTH_LONG).show()
+                                }
+
+                            }
+
+                        })
+
                 }
             }
 
@@ -493,7 +544,6 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
                                                     fcmResponse->
                                                 dialog.dismiss()
                                                 if (fcmResponse.success == 1){
-
                                                     Toast.makeText(context,"Orden Actualizado con exito",Toast.LENGTH_LONG).show()
                                                 }else{
                                                     Toast.makeText(context!!,"Fallo el envio de notificacion",Toast.LENGTH_LONG).show()
@@ -550,8 +600,6 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
         }else{
             Toast.makeText(context,"Numero de Orden no puede estar vacia o nula",Toast.LENGTH_LONG).show()
         }
-
-
     }
 
 
@@ -561,16 +609,13 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
 
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
         if (item.itemId == R.id.action_filter){
-
             val bottomSheet = BottomSheetOrderFragment.instance
             bottomSheet!!.show(requireActivity().supportFragmentManager,"OrderList")
             return true
         }
         else
             return super.onOptionsItemSelected(item)
-
     }
 
     override fun onStart() {
@@ -595,11 +640,11 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
     }
 
 
-    //ESCUCHAMOS EL EVENTO
+    //ESCUCHAMOS EL EVENTO DESDE EL BottomSheetOrderFragment
     @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
     fun onLoadOrder(event:LoadOrderEvent){
-
         orderViewModel.loadOrder(event.status)
+        (activity as AppCompatActivity).supportActionBar!!.title = Common.convertStatusToString(event.status)
 
 
     }
