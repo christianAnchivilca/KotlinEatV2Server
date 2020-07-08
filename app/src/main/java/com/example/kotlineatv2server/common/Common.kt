@@ -18,10 +18,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.example.kotlineatv2server.R
-import com.example.kotlineatv2server.model.CategoryModel
-import com.example.kotlineatv2server.model.FoodModel
-import com.example.kotlineatv2server.model.ServerUserModel
-import com.example.kotlineatv2server.model.TokenModel
+import com.example.kotlineatv2server.model.*
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.database.FirebaseDatabase
 import java.util.*
 
@@ -29,6 +27,7 @@ import kotlin.random.Random
 
 object Common {
 
+    var currentOrderSelected: OrderModel?=null
     val SHIPPING_ORDER_REF: String="ShippingOrder"
     val SHIPPER_REF: String = "Shippers"
     val ORDER_REF:String ="Order"
@@ -56,6 +55,42 @@ object Common {
 
 
     }
+
+    //Kotlin
+    fun decodePoly(encoded: String): List<LatLng> {
+        val poly:MutableList<LatLng> = ArrayList<LatLng>()
+        var index=0
+        var len=encoded.length
+        var lat=0
+        var lng=0
+        while(index < len)
+        {
+            var b:Int
+            var shift=0
+            var result = 0
+            do{
+                b = encoded[index++].toInt() - 63
+                result = result or (b and 0x1f shl shift)
+                shift +=5
+
+            }while(b >= 0x20)
+            val dlat = if(result and 1 != 0 ) (result shr 1).inv() else result shr 1
+            lat +=dlat
+            shift = 0
+            result = 0
+            do{
+                b = encoded[index++].toInt() - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            }while(b>= 0x20)
+            val dlng = if(result and 1 !=0) (result shr 1).inv() else result shr 1
+            lng += dlng
+            val p = LatLng(lat.toDouble() / 1E5,lng.toDouble()/1E5)
+            poly.add(p)
+        }
+        return poly
+    }
+
 
     fun setSpanStringColor(welcome: String, name: String?, txtUser: TextView?,color:Int){
         val builder = SpannableStringBuilder()
@@ -106,25 +141,23 @@ object Common {
             2->return "Shipped"
             -1->return "Cancelled"
             else -> return "Unknow"
-
         }
-
     }
 
     fun convertStatusToString(orderStatus: Int): String? =
         when(orderStatus){
-            0 -> "Placed"
-            1 -> "Shipping"
-            2-> "Shipped"
-            -1 -> "Canceled"
+            0 -> "Pedidos Realizados"
+            1 -> "En camino"
+            2-> "Enviados"
+            -1 -> "Cancelados"
             else -> "Error"
         }
 
-    fun updateToken(context: Context, token: String) {
+    fun updateToken(context: Context, token: String,isServerToken:Boolean,isShipperToken:Boolean) {
         FirebaseDatabase.getInstance()
             .getReference(Common.TOKEN_REF)
             .child(Common.currentServerUser!!.uid!!)
-            .setValue(TokenModel(Common.currentServerUser!!.phone!!,token))
+            .setValue(TokenModel(Common.currentServerUser!!.phone!!,token,isServerToken,isShipperToken))
             .addOnFailureListener{
                     e->Toast.makeText(context,""+e.message,Toast.LENGTH_LONG).show()
             }
@@ -155,6 +188,8 @@ object Common {
         builder.setContentTitle(title!!).setContentText(content)
             .setAutoCancel(true)
             .setSmallIcon(R.mipmap.ic_launcher_round)
+
+
             .setLargeIcon(BitmapFactory.decodeResource(context.resources,R.drawable.ic_restaurant_menu_black_24dp))
         if (pendingIntent != null)
             builder.setContentIntent(pendingIntent)

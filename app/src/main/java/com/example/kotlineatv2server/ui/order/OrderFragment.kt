@@ -24,8 +24,10 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.kotlineatv2server.PruebaActivity
 import com.example.kotlineatv2server.R
 import com.example.kotlineatv2server.SizeAddonEditActivity
+import com.example.kotlineatv2server.TrackingOrderActivity
 import com.example.kotlineatv2server.adapter.MyFoodListAdapter
 import com.example.kotlineatv2server.adapter.MyOrderAdapter
 import com.example.kotlineatv2server.adapter.MyShipperSelectedAdapter
@@ -178,6 +180,7 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
         val rdb_editar = itemview.findViewById<View>(R.id.rdb_editar_orden)as RadioButton
         val rdb_eliminar = itemview.findViewById<View>(R.id.rdb_eliminar_orden)as RadioButton
         val rdb_call_customer = itemview.findViewById<View>(R.id.rdb_call_customer) as RadioButton
+        val rdb_direccion_tracking = itemview.findViewById<View>(R.id.rdb_directions_trackings) as RadioButton
 
 
         builder.setNegativeButton("CANCELAR"){dialogInterface,_->dialogInterface.dismiss()
@@ -248,6 +251,19 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
             }else if (rdb_editar.isChecked){
 
                 showEditDialog(adapter!!.getItemAtPosition(pos),pos)
+
+            }else if(rdb_direccion_tracking.isChecked){
+                val orderModel = (recycler_order.adapter as MyOrderAdapter).getItemAtPosition(pos)
+                if (orderModel.orderStatus == 1)//shipping , en rutas
+                {
+                    Common.currentOrderSelected = orderModel
+                    startActivity(Intent(context!!,TrackingOrderActivity::class.java))
+
+                }else{
+                    Toast.makeText(context,StringBuilder("Su orden ha sido ")
+                        .append(Common.convertStatusToString(orderModel.orderStatus))
+                        .append("a si que no puede hacer seguimiento"),Toast.LENGTH_LONG).show()
+                }
 
             }else{
                 Toast.makeText(context,"Permiso Denegado",Toast.LENGTH_LONG).show()
@@ -428,8 +444,9 @@ class OrderFragment:Fragment(), IShipperLoadCallbackListener {
         shippingOrder.currentLat = -1.0
         shippingOrder.currentLng = -1.0
         //create shipping order in firebase
-        FirebaseDatabase.getInstance().getReference(Common.SHIPPING_ORDER_REF)
-            .push()
+        FirebaseDatabase.getInstance()
+            .getReference(Common.SHIPPING_ORDER_REF)
+            .child(orderModel.key!!) //se cambio push() por key
             .setValue(shippingOrder)
             .addOnFailureListener{e->
                 dialog.dismiss()

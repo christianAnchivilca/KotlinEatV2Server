@@ -21,4 +21,6 @@
     <string name="menu_order">Ordenes</string>
     <string name="menu_shipper">Repartidores</string>
     <string name="please_select_shipper">Seleccione un repartidor</string>
+    <string name="title_activity_tracking_order">Map</string>
+    <string name="title_activity_prueba">Map</string>
 </resources>

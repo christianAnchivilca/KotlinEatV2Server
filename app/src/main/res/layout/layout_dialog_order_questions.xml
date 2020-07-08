@@ -32,6 +32,12 @@
             android:padding="4dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+        <RadioButton
+            android:id="@+id/rdb_directions_trackings"
+            android:text="Tracking"
+            android:padding="4dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
 
 
