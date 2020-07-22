@@ -12,6 +12,27 @@
 
     <group>
         <item
+            android:id="@+id/nav_news"
+            android:icon="@drawable/ic_markunread_24"
+            android:title="@string/menu_news" />
+    </group>
+
+    <group>
+        <item
+            android:id="@+id/nav_best_deal"
+            android:icon="@drawable/ic_star_24"
+            android:title="@string/menu_best_deal" />
+    </group>
+
+    <group>
+        <item
+            android:id="@+id/nav_most_popular"
+            android:icon="@drawable/ic_whatshot_24"
+            android:title="@string/menu_most_popular" />
+    </group>
+
+    <group>
+        <item
             android:id="@+id/nav_order"
             android:icon="@drawable/ic_order_black_24dp"
             android:title="@string/menu_order" />

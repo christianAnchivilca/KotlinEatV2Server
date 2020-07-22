@@ -1,5 +1,8 @@
 package com.example.kotlineatv2server.services
 
+import android.content.Intent
+import android.util.Log
+import com.example.kotlineatv2server.MainActivity
 import com.example.kotlineatv2server.common.Common
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -18,9 +21,18 @@ class MyFCMServices: FirebaseMessagingService() {
         val dataRecv = remoteMessage.data
         if (dataRecv != null ){
 
-            Common.showNotification(this, Random().nextInt(),
-                dataRecv[Common.NOTI_TITLE],
-                dataRecv[Common.NOTI_CONTENT],null)
+            if (dataRecv[Common.NOTI_TITLE]!!.equals("Nueva Orden"))
+            {
+                Log.d("VALIDATE","NOTI_TITLE es igual a Nueva Orden")
+                val intent = Intent(this,MainActivity::class.java)
+                intent.putExtra(Common.IS_OPEN_ACTIVITY_NEW_ORDER,true)
+                Common.showNotification(this,Random().nextInt(),
+                    dataRecv[Common.NOTI_TITLE], dataRecv[Common.NOTI_CONTENT],intent!!)
+
+            }
+            else
+                Common.showNotification(this, Random().nextInt(),
+                    dataRecv[Common.NOTI_TITLE], dataRecv[Common.NOTI_CONTENT],null)
 
         }
     }

@@ -5,9 +5,8 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitFCMClient {
+
     private var instance:Retrofit?=null
-
-
     fun getInstance():Retrofit{
 
         if(instance == null)

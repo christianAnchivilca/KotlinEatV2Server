@@ -27,6 +27,13 @@ import kotlin.random.Random
 
 object Common {
 
+    val IMAGE_URL: String="IMAGE_URL"
+    val IS_SEND_IMAGE: String="IS_SEND_IMAGE"
+    var mostPopularSelected: MostPopularModel?=null
+    const val MOST_POPULAR_REFERENCE: String="MostPopular"
+    var bestDealSelected: BestDealModel?=null
+    const val BEST_DEALS_REFERENCE: String="BestDeals"
+    val IS_OPEN_ACTIVITY_NEW_ORDER: String?="IsOpenActivityOrder"
     var currentOrderSelected: OrderModel?=null
     val SHIPPING_ORDER_REF: String="ShippingOrder"
     val SHIPPER_REF: String = "Shippers"
@@ -188,8 +195,6 @@ object Common {
         builder.setContentTitle(title!!).setContentText(content)
             .setAutoCancel(true)
             .setSmallIcon(R.mipmap.ic_launcher_round)
-
-
             .setLargeIcon(BitmapFactory.decodeResource(context.resources,R.drawable.ic_restaurant_menu_black_24dp))
         if (pendingIntent != null)
             builder.setContentIntent(pendingIntent)
@@ -202,6 +207,25 @@ object Common {
     fun getNewOrderTopic(): String {
         return StringBuilder("/topics/new_order").toString()
 
+    }
+
+    fun getBearing(begin: LatLng, end: LatLng): Float {
+        val lat = Math.abs(begin.latitude - end.longitude)
+        val lng = Math.abs(begin.longitude - end.longitude)
+        if (begin.latitude < end.latitude && begin.longitude < end.longitude)
+            return Math.toDegrees(Math.atan(lng/lat)).toFloat()
+        else if (begin.latitude >= end.latitude && begin.longitude < end.longitude)
+            return (90-Math.toDegrees(Math.atan(lng/lat))+90).toFloat()
+        else if (begin.latitude >= end.latitude && begin.longitude >= end.longitude)
+            return (Math.toDegrees(Math.atan(lng/lat))+180).toFloat()
+        else if (begin.latitude < end.latitude && begin.longitude >= end.longitude)
+            return (90-Math.toDegrees(Math.atan(lng/lat))+270).toFloat()
+        return -1.0f
+    }
+
+    fun getNewsTopic(): String {
+
+        return StringBuilder("/topics/news").toString()
     }
 
 

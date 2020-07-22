@@ -15,6 +15,16 @@
     <string name="menu_home">Home</string>
     <string name="menu_food_list">Food List</string>
     <string name="menu_category">Categorias</string>
+    <string name="menu_news">Nuevo Envio</string>
+    <string name="titulo_new_system_dialog">Titulo</string>
+    <string name="content_new_system_dialog">Contenido</string>
+    <string name="imageSend_new_system_dialog">Enviar Imagen</string>
+    <string name="none_rdi_new_system_dialog">Ninguna</string>
+    <string name="link_rdi_new_system_dialog">Link</string>
+    <string name="link_edt_new_system_dialog">Link</string>
+    <string name="image_rdi_new_system_dialog">Imagen</string>
+    <string name="menu_best_deal">Mejores Platos</string>
+    <string name="menu_most_popular">Mas Populares</string>
     <string name="menu_sign_out">Salir</string>
     <string name="popular_category">Categorias Populares</string>
     <string name="action_search">Search</string>
@@ -23,4 +33,6 @@
     <string name="please_select_shipper">Seleccione un repartidor</string>
     <string name="title_activity_tracking_order">Map</string>
     <string name="title_activity_prueba">Map</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

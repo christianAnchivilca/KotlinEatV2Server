@@ -169,7 +169,12 @@ class MainActivity : AppCompatActivity() {
     private fun goToHomeActivity(user:ServerUserModel) {
 
         Common.currentServerUser = user
-        startActivity(Intent(this@MainActivity,HomeActivity::class.java))
+        val myIntent = Intent(this@MainActivity,HomeActivity::class.java)
+        var isOpenActivityNewOrder = false
+       if (intent != null && intent.extras != null)
+           isOpenActivityNewOrder =  intent.extras.getBoolean(Common.IS_OPEN_ACTIVITY_NEW_ORDER,false)
+        myIntent.putExtra(Common.IS_OPEN_ACTIVITY_NEW_ORDER,isOpenActivityNewOrder)
+        startActivity(myIntent)
         finish()
     }
 
